@@ -7,7 +7,6 @@ typedef struct Instruction {
     char* accept_string;
     char write;
     bool left;
-
 } instruction_t;
 
 typedef struct InstructionSet {
