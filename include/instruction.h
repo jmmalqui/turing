@@ -1,17 +1,28 @@
-#ifndef INSTR_H_
-#define INSTR_H_
+#ifndef turing_instruction_h
+#define turing_instruction_h
 #include <stdbool.h>
-typedef struct Instruction {
-    char* from;
-    char* to;
+
+/*
+Each .tm file contains turing instructions of the following layout:
+
+    [                 Instruction                   ]
+    [ Input State  ][       Transition Command      ]
+                    [Sub command]      [Output State]
+
+One state can have multiple transition commands pointing at different states
+including itself.
+*/
+
+typedef struct {
     char* accept_string;
+    char* state_output;
     char write;
     bool left;
-} instruction_t;
+} TransitionCommand;
 
-typedef struct InstructionSet {
+typedef struct {
+    char* state_input;
     int size;
-    instruction_t instruction;
-} instruction_set_t;
-
+    TransitionCommand* transition_command;
+} Instruction;
 #endif

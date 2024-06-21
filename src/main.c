@@ -71,7 +71,7 @@ int main(int argc, char const* argv[]) {
         }
     }
     printf("Arguments copied succesfully\n");
-    turing_machine_t* machine = tm_from_file_init(filename);
+    TuringMachine* machine = tm_from_file_init(filename);
     if (!machine) {
         printf("Machine generation fail.\n");
         return EXIT_FAILURE;

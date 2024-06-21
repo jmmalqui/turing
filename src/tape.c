@@ -1,3 +1,3 @@
 #include "tape.h"
 
-void init_cell(tape_cell_t* cell, char* tm_input) {}
+void init_cell(Tape* cell, char* tm_input) {}

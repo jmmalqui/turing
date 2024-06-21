@@ -1,4 +1,3 @@
 #include "instruction.h"
-void print_instruction() {
-    printf("cats");
-}
+#include <memory.h>
+#include <stdlib.h>

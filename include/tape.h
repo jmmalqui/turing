@@ -1,12 +1,12 @@
-#ifndef CELL_H_
-#define CELL_H_
+#ifndef turing_tape_h
+#define turing_tape_h
 
-typedef struct TapeCell {
-    struct tape_cell_t* left;
-    struct tape_cell_t* right;
+typedef struct {
+    struct Tape* left;
+    struct Tape* right;
     char data;
-} tape_cell_t;
+} Tape;
 
-void init_cell(tape_cell_t* cell, char* tm_input);
+void init_cell(Tape* cell, char* tm_input);
 
 #endif
