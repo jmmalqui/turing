@@ -1,19 +1,39 @@
 #include "turing.h"
-#include <stdbool.h>
+#include "common.h"
 #include "ctype.h"
 #include "memory.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "utils.h"
-void tm_debug(TuringMachine* machine) {
+#include <stdbool.h>
+void
+tm_debug(TuringMachine* machine)
+{
     printf("[Machine contents]\n");
     printf("Current state: %s\n", machine->curr_state);
-    printf("Current num of states: %d\n", machine->state_set_size);
-    printf("Current num of instructions: %d\n", machine->instruction_set_size);
+    printf("Current num of states: %d\n", machine->state_count);
+    printf("Current num of instructions: %d\n", machine->instruction_count);
 }
 
-TuringMachine* tm_from_file_init(char* tm_file) {
+TuringMachine*
+tm_init(void)
+{
+    TuringMachine* machine = ALLOC(TuringMachine);
+    machine->current_state = ALLOC_STR(2);
+    machine->current_state = strcpy(machine->current_state, "q0");
+
+    machine->state_count = 0;
+    machine->state_capacity = 16;
+    machine->state_set = ALLOC_ARRAY(char*, machine->state_capacity);
+    return machine;
+}
+
+TuringMachine*
+tm_from_file_init(char* tm_file)
+{
     // Turing machine initialization
+    TuringMachine* machine = tm_init();
+
     TuringMachine* machine = (TuringMachine*)malloc(sizeof(TuringMachine));
     machine->curr_state = (char*)malloc(3);
     machine->curr_state = strcpy(machine->curr_state, "q0");
@@ -22,7 +42,7 @@ TuringMachine* tm_from_file_init(char* tm_file) {
     */
     machine->state_set_size = 16;
     machine->state_set =
-        (char**)malloc(machine->state_set_size * sizeof(char*));
+      (char**)malloc(machine->state_set_size * sizeof(char*));
     printf("State set init success\n");
     /*
     Tape initialization
@@ -36,8 +56,8 @@ TuringMachine* tm_from_file_init(char* tm_file) {
     Instruction size initialization
     */
     machine->instruction_set_size = 16;
-    machine->instruction_set = (Instruction*)malloc(
-        machine->instruction_set_size * sizeof(Instruction));
+    machine->instruction_set =
+      (Instruction*)malloc(machine->instruction_set_size * sizeof(Instruction));
     tm_debug(machine);
 
     FILE* fptr;
@@ -55,7 +75,7 @@ TuringMachine* tm_from_file_init(char* tm_file) {
         char* line_token_delim_saveptr = NULL;
 
         char* token =
-            __strtok_r(transition_function, " ", &space_token_delim_saveptr);
+          __strtok_r(transition_function, " ", &space_token_delim_saveptr);
 
         int token_idx = 0;
 
@@ -77,20 +97,18 @@ TuringMachine* tm_from_file_init(char* tm_file) {
                         }
                     }
                     if (num > machine->instruction_set_size) {
-                        printf(
-                            "Reallocating more memory to make room for new "
-                            "states\n");
+                        printf("Reallocating more memory to make room for new "
+                               "states\n");
                         machine->instruction_set_size = (int)num;
                         /* Change this later you silly goose (check the
                          * the return type) */
                         Instruction* dummy = (Instruction*)realloc(
-                            machine->instruction_set,
-                            machine->instruction_set_size *
-                                sizeof(Instruction));
+                          machine->instruction_set,
+                          machine->instruction_set_size * sizeof(Instruction));
                         if (!dummy) {
                             printf(
-                                "Realloc failed when trying to allocate memory "
-                                "for the instruction set");
+                              "Realloc failed when trying to allocate memory "
+                              "for the instruction set");
                             return NULL;
                         }
                         machine->instruction_set = dummy;
@@ -98,10 +116,10 @@ TuringMachine* tm_from_file_init(char* tm_file) {
                     tm_debug(machine);
                 case 1:
                     char* subtoken =
-                        __strtok_r(token, "|", &line_token_delim_saveptr);
+                      __strtok_r(token, "|", &line_token_delim_saveptr);
                     while (subtoken) {
                         subtoken =
-                            __strtok_r(NULL, "|", &line_token_delim_saveptr);
+                          __strtok_r(NULL, "|", &line_token_delim_saveptr);
                     }
 
                 case 2:
@@ -119,4 +137,13 @@ TuringMachine* tm_from_file_init(char* tm_file) {
     return machine;
 }
 
-void register_instruction(TuringMachine* machine, Instruction* Instruction) {}
+void
+register_instruction(TuringMachine* machine, Instruction* Instruction)
+{
+}
+
+void
+tm_dealloc(TuringMachine* machine)
+{
+    free(machine);
+}

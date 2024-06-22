@@ -1,29 +1,41 @@
 #ifndef turing_h
 #define turing_h_
-#include <stdbool.h>
 #include "instruction.h"
 #include "tape.h"
+#include <stdbool.h>
 
 #define TFLEN 4096
-typedef struct {
-    char* curr_state;
-    int state_set_size;
+typedef struct
+{
+    char* current_state;
+    int state_count;
+    int state_capacity;
     char** state_set;
     Tape* tape;
-    int instruction_set_size;
+    int instruction_count;
+    int instruction_capacity;
     Instruction* instruction_set;
 } TuringMachine;
 
-void tm_init(TuringMachine* machine);
+TuringMachine*
+tm_init(void);
 
-TuringMachine* tm_from_file_init(char* tm_file);
+TuringMachine*
+tm_from_file_init(char* tm_file);
 
-void register_instruction(TuringMachine* machine, Instruction* instruction);
+void
+register_instruction(TuringMachine* machine, Instruction* instruction);
 
-char* tm_solve(TuringMachine* machine, char* input);
+char*
+tm_solve(TuringMachine* machine, char* input);
 
-bool tm_has_state(TuringMachine* machine, char* state);
+bool
+tm_has_state(TuringMachine* machine, char* state);
 
-void tm_debug(TuringMachine* machine);
+void
+tm_debug(TuringMachine* machine);
+
+void
+tm_dealloc(TuringMachine* machine);
 
 #endif

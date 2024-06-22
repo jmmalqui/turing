@@ -4,4 +4,7 @@
 #include "stdlib.h"
 #include "string.h"
 
-void trim_eol(char** string) {}
+void
+trim_eol(char** string)
+{
+}
