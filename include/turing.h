@@ -1,30 +1,23 @@
 #ifndef turing_h
 #define turing_h_
 #include "instruction.h"
+#include "state.h"
 #include "tape.h"
 #include <stdbool.h>
 
-#define TFLEN 4096
 typedef struct
 {
+    // StateSet state_set; This is useless
     char* current_state;
-    int state_count;
-    int state_capacity;
-    char** state_set;
-    Tape* tape;
-    int instruction_count;
-    int instruction_capacity;
-    Instruction* instruction_set;
+    Tape tape;
+    InstructionSet instruction_set;
 } TuringMachine;
 
-TuringMachine*
-tm_init(void);
+int
+tm_init(TuringMachine* machine);
 
-TuringMachine*
-tm_from_file_init(char* tm_file);
-
-void
-register_instruction(TuringMachine* machine, Instruction* instruction);
+int
+tm_load_file(TuringMachine* machine, char* tm_file);
 
 char*
 tm_solve(TuringMachine* machine, char* input);

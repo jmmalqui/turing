@@ -6,140 +6,45 @@
 #include "stdlib.h"
 #include "utils.h"
 #include <stdbool.h>
-void
-tm_debug(TuringMachine* machine)
-{
-    printf("[Machine contents]\n");
-    printf("Current state: %s\n", machine->curr_state);
-    printf("Current num of states: %d\n", machine->state_count);
-    printf("Current num of instructions: %d\n", machine->instruction_count);
-}
 
-TuringMachine*
-tm_init(void)
+int
+tm_init(TuringMachine* machine)
 {
-    TuringMachine* machine = ALLOC(TuringMachine);
+    // state_set_init(&machine->);
     machine->current_state = ALLOC_STR(2);
     machine->current_state = strcpy(machine->current_state, "q0");
+    tape_init(&machine->tape);
+    instruction_set_init(&machine->instruction_set);
 
-    machine->state_count = 0;
-    machine->state_capacity = 16;
-    machine->state_set = ALLOC_ARRAY(char*, machine->state_capacity);
-    return machine;
+    return TM_SUCCESS;
 }
 
-TuringMachine*
-tm_from_file_init(char* tm_file)
+int
+tm_load_file(TuringMachine* machine, char* tm_file)
 {
-    // Turing machine initialization
-    TuringMachine* machine = tm_init();
 
-    TuringMachine* machine = (TuringMachine*)malloc(sizeof(TuringMachine));
-    machine->curr_state = (char*)malloc(3);
-    machine->curr_state = strcpy(machine->curr_state, "q0");
-    /*
-    State set initialization
-    */
-    machine->state_set_size = 16;
-    machine->state_set =
-      (char**)malloc(machine->state_set_size * sizeof(char*));
-    printf("State set init success\n");
-    /*
-    Tape initialization
-    */
-    machine->tape = (Tape*)malloc(sizeof(Tape));
-    machine->tape->data = 0;
-    machine->tape->right = NULL;
-    machine->tape->left = NULL;
-    printf("Tape init success\n");
-    /*
-    Instruction size initialization
-    */
-    machine->instruction_set_size = 16;
-    machine->instruction_set =
-      (Instruction*)malloc(machine->instruction_set_size * sizeof(Instruction));
-    tm_debug(machine);
-
+    // File opening
     FILE* fptr;
     fptr = fopen(tm_file, "r");
-    if (!fptr) {
-        printf("Error loading file\n");
-        return NULL;
-    }
-    char* transition_function;
-    transition_function = malloc(TFLEN);
 
-    while (fgets(transition_function, TFLEN, fptr) != 0) {
-        printf("Instruction: %s\n", transition_function);
-        char* space_token_delim_saveptr = NULL;
-        char* line_token_delim_saveptr = NULL;
+    if (!fptr)
+        return TM_ERROR;
 
-        char* token =
-          __strtok_r(transition_function, " ", &space_token_delim_saveptr);
+    // Each line of tm_file
+    char* transition_function = ALLOC_STR(4096);
 
-        int token_idx = 0;
-
-        char* state_input;
-        while (token) {
-            switch (token_idx) {
-                case 0:
-                    state_input = (char*)malloc(strlen(token) + 1);
-                    state_input = strcpy(state_input, token);
-                    char* p = state_input;
-                    long num;
-                    while (*p) {
-                        if (isdigit(*p) ||
-                            (*p == '-' || *p == '+') && isdigit(*(p + 1))) {
-                            num = strtol(p, &p, 10);
-                            printf("%ld\n", num);
-                        } else {
-                            p++;
-                        }
-                    }
-                    if (num > machine->instruction_set_size) {
-                        printf("Reallocating more memory to make room for new "
-                               "states\n");
-                        machine->instruction_set_size = (int)num;
-                        /* Change this later you silly goose (check the
-                         * the return type) */
-                        Instruction* dummy = (Instruction*)realloc(
-                          machine->instruction_set,
-                          machine->instruction_set_size * sizeof(Instruction));
-                        if (!dummy) {
-                            printf(
-                              "Realloc failed when trying to allocate memory "
-                              "for the instruction set");
-                            return NULL;
-                        }
-                        machine->instruction_set = dummy;
-                    }
-                    tm_debug(machine);
-                case 1:
-                    char* subtoken =
-                      __strtok_r(token, "|", &line_token_delim_saveptr);
-                    while (subtoken) {
-                        subtoken =
-                          __strtok_r(NULL, "|", &line_token_delim_saveptr);
-                    }
-
-                case 2:
-                    if (*(token + strlen(token) - 1) == '\n') {
-                        *(token + strlen(token) - 1) = 0;
-                    }
-            }
-
-            token = __strtok_r(NULL, " ", &space_token_delim_saveptr);
-            token_idx += 1;
-        }
-        // register_instruction(machine, instruction);
+    while (fgets(transition_function, 4096, fptr) != 0) {
+        add_instruction(&machine->instruction_set, transition_function);
     }
     fclose(fptr);
-    return machine;
+    return TM_SUCCESS;
 }
-
-void
-register_instruction(TuringMachine* machine, Instruction* Instruction)
+char*
+tm_solve(TuringMachine* machine, char* input)
 {
+    printf("\nSolving turing machine for %s\n", input);
+
+    return input;
 }
 
 void

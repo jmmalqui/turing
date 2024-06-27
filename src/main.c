@@ -19,20 +19,24 @@ main(int argc, char const* argv[])
     for (int i = 1; i < argc; i++) {
         size_t argv_size =
           strlen(argv[i]) * sizeof(char); // although char is always one byte
-        switch (i) {
-            case 1:
-                input = malloc(argv_size + 1);
-                memcpy(input, argv[i], argv_size);
-            case 2:
-                filename = malloc(argv_size + 1);
-                memcpy(filename, argv[i], argv_size);
+        if (i == 1) {
+            input = ALLOC_STR(argv_size);
+            memcpy(input, argv[i], argv_size);
+            printf("[%d] Loading input string: %s\n", i, input);
+        }
+        if (i == 2) {
+            filename = ALLOC_STR(argv_size);
+            memcpy(filename, argv[i], argv_size);
+            printf("[%d] Loading filename: %s\n", i, filename);
         }
     }
-    printf("Arguments copied succesfully\n");
-    TuringMachine* machine = tm_from_file_init(filename);
-    if (!machine) {
+    TuringMachine machine;
+    int init_success = tm_init(&machine);
+    int load_file_success = tm_load_file(&machine, filename);
+    if (init_success != TM_SUCCESS) {
         printf("Machine generation fail.\n");
         return EXIT_FAILURE;
     }
+    tm_solve(&machine, input);
     return EXIT_SUCCESS;
 }

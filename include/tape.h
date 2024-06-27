@@ -3,12 +3,21 @@
 
 typedef struct
 {
-    struct Tape* left;
-    struct Tape* right;
-    char data;
+    char* data;
+    int pointer;
+    int count;
+    int capacity;
 } Tape;
 
 void
-init_cell(Tape* cell, char* tm_input);
+tape_init(Tape* tape);
 
+void
+move_right(void);
+
+void
+overwrite_this_cell(Tape* tape, char* data);
+
+void
+tape_free(Tape* tape);
 #endif

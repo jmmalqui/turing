@@ -8,5 +8,6 @@ c_files = [
     'src/tape.c',
     'src/turing.c',
     'src/utils.c',
+    'src/state.c'
 ]
 executable('turing', c_files, include_directories: incdir)
