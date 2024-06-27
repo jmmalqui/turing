@@ -19,7 +19,6 @@ int instruction_set_init(InstructionSet* instruction_set) {
 }
 
 int add_instruction(InstructionSet* instruction_set, char* tm_file_line) {
-    // so this part is basically initting this struct?
     Instruction instruction;
     instruction.count = 0;
     instruction.capacity = 16;
@@ -32,7 +31,6 @@ int add_instruction(InstructionSet* instruction_set, char* tm_file_line) {
     char* vline_saveptr = NULL;
     char* comma_saveptr = NULL;
 
-    printf("\n*adding instruction %s\n", tm_file_line);
     char* token = strtok_r(tm_file_line, WHITESPACE, &space_saveptr);
 
     int token_idx = 0;
@@ -54,11 +52,6 @@ int add_instruction(InstructionSet* instruction_set, char* tm_file_line) {
                 no_instructions_flag = true;
             } else {
                 for (int i = 0; i < instruction_set->count; i++) {
-                    printf(
-                        "comparing instruction state input [%s] to  "
-                        "state_input [%s]\n",
-                        instruction_set->instructions[i].state_input,
-                        state_input);
                     if (strcmp(instruction_set->instructions[i].state_input,
                                state_input) == 0) {
                         printf("true\n");
@@ -83,28 +76,23 @@ int add_instruction(InstructionSet* instruction_set, char* tm_file_line) {
                     transition_comm.accept_string =
                         strcpy(transition_comm.accept_string, subtoken);
                 }
-
                 if (subtoken_idx == 1) {
                     char* comma_token =
                         strtok_r(subtoken, COMMA, &comma_saveptr);
                     int comma_token_idx = 0;
-
                     while (comma_token) {
                         if (comma_token_idx == 0) {
                             printf("first comma subtoken %s\n", comma_token);
                             transition_comm.write = *comma_token;
                         }
-
                         if (comma_token_idx == 1) {
                             printf("second comma subtoken %s\n", comma_token);
                             transition_comm.move = *comma_token;
                         }
-
                         comma_token = strtok_r(NULL, COMMA, &comma_saveptr);
                         comma_token_idx += 1;
                     }
                 }
-
                 subtoken = strtok_r(NULL, VLINE, &vline_saveptr);
                 subtoken_idx += 1;
             }
@@ -112,7 +100,6 @@ int add_instruction(InstructionSet* instruction_set, char* tm_file_line) {
         if (token_idx == 2) {
             if (*(token + strlen(token) - 1) == '\n')
                 *(token + strlen(token) - 1) = 0;
-
             transition_comm.state_output = ALLOC_STR(strlen(token));
             transition_comm.state_output =
                 strcpy(transition_comm.state_output, token);
@@ -121,10 +108,6 @@ int add_instruction(InstructionSet* instruction_set, char* tm_file_line) {
         token_idx += 1;
     }
     if (no_instructions_flag) {
-        printf(
-            "No instructions flag received, adding this first line as an "
-            "instruction\n");
-        // It seems that you dont really need to memcpy this (?)
         instruction.transition_command[instruction.count] = transition_comm;
         instruction.count += 1;
         instruction_set->instructions[instruction_set->count] = instruction;
@@ -133,8 +116,6 @@ int add_instruction(InstructionSet* instruction_set, char* tm_file_line) {
         return TM_SUCCESS;
     }
     if (instruction_already_saved) {
-        printf("Instruction already saved somwhere[%s]\n",
-               instruction_set->instructions[saved_idx].state_input);
         for (int i = 0; i < instruction_set->instructions[saved_idx].count;
              i++) {
             printf("%s\n", instruction_set->instructions[saved_idx]
@@ -148,9 +129,6 @@ int add_instruction(InstructionSet* instruction_set, char* tm_file_line) {
         return TM_SUCCESS;
     }
     if (!instruction_already_saved) {
-        printf(
-            "Couldnt find instruction anywhere, adding it as a new "
-            "instruction\n");
         instruction.transition_command[instruction.count] = transition_comm;
         instruction.count += 1;
         instruction_set->instructions[instruction_set->count] = instruction;
