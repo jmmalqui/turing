@@ -17,6 +17,9 @@ This program accepts two arguments as input as follows:
 ```bash
 ./turing <Input String> <Instruction File> 
 ```
+ ### Input String
+ An string that the machine would use as its tape
+ If the Input String is rejected by the machine, it would output "Reject"
 ### Instruction File
  This file should contain the instructions that the Turing machine will follow. Each instruction should follow this syntax: 
 
