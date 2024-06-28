@@ -38,8 +38,6 @@ char *tm_solve(TuringMachine *machine, char *input)
 {
     machine->tape.data = strcpy(machine->tape.data, input);
     machine->tape.count = strlen(input);
-    printf("%s %d\n", machine->tape.data, machine->tape.count);
-
     int tape_idx = 0;
     bool reject = false;
     bool halt = false;
@@ -98,7 +96,6 @@ char *tm_solve(TuringMachine *machine, char *input)
                             }
                             break;
                         case 'S':
-                            printf("halting machine\n");
                             halt = true;
                             break;
                         default:
