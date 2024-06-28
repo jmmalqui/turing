@@ -45,8 +45,7 @@ int add_instruction(InstructionSet *instruction_set, char *tm_file_line)
         {
             state_input = ALLOC_STR(strlen(token));
             state_input = strcpy(state_input, token);
-            // If no instructions have been added then set a flag so at the end
-            // this initial line is added as an instruction
+
             if (instruction_set->count == 0)
             {
                 instruction.state_input = ALLOC_STR(strlen(token));
