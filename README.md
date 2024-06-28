@@ -18,8 +18,8 @@ This program accepts two arguments as input as follows:
 ./turing <Input String> <Instruction File> 
 ```
  ### Input String
- An string that the machine would use as its tape
- If the Input String is rejected by the machine, it would output "Reject"
+ An string that the machine would use as its tape.
+ If the Input String is rejected by the machine, it would output "Reject".
 ### Instruction File
  This file should contain the instructions that the Turing machine will follow. Each instruction should follow this syntax: 
 
@@ -36,16 +36,21 @@ Character that will be used when overwriting the current tape cell. If the Overw
 The instruction that the machine will perform: R(Right) L(Left) S(Halt the machine)
 #### Output State
 Indicates the state in which the machine will be after executing the instruction 
- ### Input String
- An string that the machine would use as its tape
- If the Input String is rejected by the machine, it would output "Reject"
-## Examples
 
- A machine that multiplies a number by 10:
+## Examples
+A machine that multiplies a number by 10:
+```txt
+q0 123456789|/,R q1 
+q0 0|/,S qS
+q1 0123456789|/,R q1
+q1 _|0,S qS 
+```
+
+ A machine that multiplies a number by 100 and then adds 10:
  ```txt
- q0 123456789|/,R q1 
- q0 0|/,S qS
- q1 0123456789|/,R q1
- q1 _|0,S qS 
+ q0 123456789|/,R q1
+q1 0123456789|/,R q1 
+q1 _|1,R q2
+q2 _|0,S qS
  ```
  
