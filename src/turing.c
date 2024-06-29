@@ -9,6 +9,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "utils.h"
+
 int tm_init(TuringMachine *machine)
 {
     machine->current_state = ALLOC_STR(2);
@@ -34,6 +35,7 @@ int tm_load_file(TuringMachine *machine, char *tm_file)
     fclose(fptr);
     return TM_SUCCESS;
 }
+
 char *tm_solve(TuringMachine *machine, char *input)
 {
     machine->tape.data = strcpy(machine->tape.data, input);

@@ -14,7 +14,7 @@ int get_state_number(char *string)
     {
         if (isdigit(*p) || (*p == '-' || *p == '+') && isdigit(*(p + 1)))
         {
-            state_number = (int)strtol(p, &p, 10);
+            state_number = (int) strtol(p, &p, 10);
         }
         else
         {

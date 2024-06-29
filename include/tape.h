@@ -10,10 +10,8 @@ typedef struct
 } Tape;
 
 void tape_init(Tape *tape);
-
 void move_right(void);
-
 void overwrite_this_cell(Tape *tape, char *data);
-
 void tape_free(Tape *tape);
+
 #endif

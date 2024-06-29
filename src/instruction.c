@@ -39,6 +39,8 @@ int add_instruction(InstructionSet *instruction_set, char *tm_file_line)
     bool no_instructions_flag = false;
     bool instruction_already_saved = false;
     int saved_idx = 0;
+
+    // TODO: Escape the indentation hell here    
     while (token)
     {
         if (token_idx == 0)

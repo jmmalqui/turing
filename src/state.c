@@ -1,7 +1,7 @@
 #include "state.h"
-
 #include "common.h"
 #include "mem.h"
+
 int state_set_init(StateSet *state_set)
 {
     state_set->count = 0;

@@ -1,7 +1,7 @@
 #include "tape.h"
-
 #include "common.h"
 #include "mem.h"
+
 void tape_init(Tape *tape)
 {
     tape->pointer = 0;

@@ -38,7 +38,6 @@ typedef struct
 } InstructionSet;
 
 int instruction_set_init(InstructionSet *instructions);
-
 int add_instruction(InstructionSet *instructions, char *tm_file_line);
 
 #endif

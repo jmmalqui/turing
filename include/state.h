@@ -2,6 +2,7 @@
 #define turing_state_h
 
 #include "common.h"
+
 typedef struct
 {
     int count;
