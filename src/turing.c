@@ -12,8 +12,7 @@
 
 int tm_init(TuringMachine *machine)
 {
-    machine->current_state = ALLOC_STR(2);
-    machine->current_state = strcpy(machine->current_state, "q0");
+    machine->current_state = "q0";
     tape_init(&machine->tape);
     instruction_set_init(&machine->instruction_set);
     return TM_SUCCESS;
@@ -114,16 +113,12 @@ char *tm_solve(TuringMachine *machine, char *input)
             }
         }
     }
+
     if (halt)
-    {
         return machine->tape.data;
-    }
-    char *reject_str = ALLOC_STR(6);
-    reject_str = strcpy(reject_str, "reject");
+
     if (reject)
-    {
-        return reject_str;
-    }
+        return "reject";
 
     return NULL;
 }

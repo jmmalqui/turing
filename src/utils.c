@@ -13,13 +13,9 @@ int get_state_number(char *string)
     while (*p)
     {
         if (isdigit(*p) || (*p == '-' || *p == '+') && isdigit(*(p + 1)))
-        {
             state_number = (int) strtol(p, &p, 10);
-        }
         else
-        {
             p++;
-        }
     }
     return state_number;
 }
