@@ -14,24 +14,21 @@ One state can have multiple transition commands pointing at different states
 including itself.
 */
 
-typedef struct
-{
+typedef struct {
     char *accept_string;
     char *state_output;
     char write;
     char move;
 } TransitionCommand;
 
-typedef struct
-{
+typedef struct {
     char *state_input;
     int count;
     int capacity;
     TransitionCommand *transition_command;
 } Instruction;
 
-typedef struct
-{
+typedef struct {
     int count;
     int capacity;
     Instruction *instructions;

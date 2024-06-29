@@ -1,8 +1,7 @@
 #ifndef turing_tape_h
 #define turing_tape_h
 
-typedef struct
-{
+typedef struct {
     char *data;
     int pointer;
     int count;

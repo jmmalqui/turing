@@ -7,28 +7,25 @@
 #include "stdbool.h"
 #include "turing.h"
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
     if (argc < 3) {
         fprintf(stderr, "Usage: %s <input> <path>\n", argv[0]);
         return EXIT_FAILURE;
     }
 
-    char *input = (char *) argv[1];
-    char *filename = (char *) argv[2];
+    char *input = (char *)argv[1];
+    char *filename = (char *)argv[2];
 
     TuringMachine machine;
     int init_success = tm_init(&machine);
     int load_file_success = tm_load_file(&machine, filename);
 
-    if (init_success != TM_SUCCESS)
-    {
+    if (init_success != TM_SUCCESS) {
         fprintf(stderr, "Machine generation fail.\n");
         return EXIT_FAILURE;
     }
 
-    if (load_file_success != TM_SUCCESS)
-    {
+    if (load_file_success != TM_SUCCESS) {
         fprintf(stderr, "File loading failed\n");
         return EXIT_FAILURE;
     }

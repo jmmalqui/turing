@@ -6,8 +6,7 @@
 #include "state.h"
 #include "tape.h"
 
-typedef struct
-{
+typedef struct {
     // StateSet state_set; This is useless
     char *current_state;
     Tape tape;
