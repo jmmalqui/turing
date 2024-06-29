@@ -2,8 +2,8 @@
 #define turing_state_h
 
 #include "common.h"
-typedef struct
-{
+
+typedef struct {
     int count;
     int capacity;
     char **states;
