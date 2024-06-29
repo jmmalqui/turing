@@ -31,7 +31,7 @@ int add_instruction(InstructionSet *instruction_set, char *tm_file_line)
     char *vline_saveptr = NULL;
     char *comma_saveptr = NULL;
 
-    char *token = strtok_r(tm_file_line, WHITESPACE, &space_saveptr);
+    char *token = __strtok_r(tm_file_line, WHITESPACE, &space_saveptr);
 
     int token_idx = 0;
     char *state_input;
@@ -72,7 +72,7 @@ int add_instruction(InstructionSet *instruction_set, char *tm_file_line)
         }
         if (token_idx == 1)
         {
-            char *subtoken = strtok_r(token, VLINE, &vline_saveptr);
+            char *subtoken = __strtok_r(token, VLINE, &vline_saveptr);
             int subtoken_idx = 0;
             while (subtoken)
             {
@@ -83,7 +83,7 @@ int add_instruction(InstructionSet *instruction_set, char *tm_file_line)
                 }
                 if (subtoken_idx == 1)
                 {
-                    char *comma_token = strtok_r(subtoken, COMMA, &comma_saveptr);
+                    char *comma_token = __strtok_r(subtoken, COMMA, &comma_saveptr);
                     int comma_token_idx = 0;
                     while (comma_token)
                     {
@@ -95,11 +95,11 @@ int add_instruction(InstructionSet *instruction_set, char *tm_file_line)
                         {
                             transition_comm.move = *comma_token;
                         }
-                        comma_token = strtok_r(NULL, COMMA, &comma_saveptr);
+                        comma_token = __strtok_r(NULL, COMMA, &comma_saveptr);
                         comma_token_idx += 1;
                     }
                 }
-                subtoken = strtok_r(NULL, VLINE, &vline_saveptr);
+                subtoken = __strtok_r(NULL, VLINE, &vline_saveptr);
                 subtoken_idx += 1;
             }
         }
@@ -110,66 +110,53 @@ int add_instruction(InstructionSet *instruction_set, char *tm_file_line)
             transition_comm.state_output = ALLOC_STR(strlen(token));
             transition_comm.state_output = strcpy(transition_comm.state_output, token);
         }
-        token = strtok_r(NULL, WHITESPACE, &space_saveptr);
+        token = __strtok_r(NULL, WHITESPACE, &space_saveptr);
         token_idx += 1;
     }
     if (no_instructions_flag)
     {
-        instruction.count += 1;
-        if (instruction.count >= instruction.capacity - 1)
-        {
-            instruction.transition_command =
-                GROW_ARRAY(TransitionCommand, instruction.transition_command, instruction.capacity * ARRAY_GROWTH);
-            instruction.capacity *= ARRAY_GROWTH;
-        }
-        instruction.transition_command[instruction.count - 1] = transition_comm;
-
-        instruction_set->count += 1;
-        if (instruction_set->count >= instruction.capacity - 1)
-        {
-            instruction_set->instructions =
-                GROW_ARRAY(Instruction, instruction_set->instructions, instruction_set->capacity * ARRAY_GROWTH);
-            instruction_set->capacity *= ARRAY_GROWTH;
-        }
-        instruction_set->instructions[instruction_set->count - 1] = instruction;
+        add_transition_command(&instruction, &transition_comm);
+        add_instruction_to_set(instruction_set, &instruction);
         no_instructions_flag = false;
         return TM_SUCCESS;
     }
     if (instruction_already_saved)
     {
-        instruction_set->instructions[saved_idx].count += 1;
-        if (instruction_set->instructions[saved_idx].count >= instruction_set->instructions[saved_idx].capacity - 1)
-        {
-            instruction_set->instructions[saved_idx].transition_command =
-                GROW_ARRAY(TransitionCommand, instruction_set->instructions[saved_idx].transition_command,
-                           instruction_set->instructions[saved_idx].capacity * ARRAY_GROWTH);
-            instruction_set->instructions[saved_idx].capacity *= ARRAY_GROWTH;
-        }
-        instruction_set->instructions[saved_idx]
-            .transition_command[instruction_set->instructions[saved_idx].count - 1] = transition_comm;
+        add_transition_command(&instruction_set->instructions[saved_idx], &transition_comm);
         instruction_already_saved = false;
         return TM_SUCCESS;
     }
     if (!instruction_already_saved)
     {
-        instruction.count += 1;
-        if (instruction.count >= instruction.capacity - 1)
-        {
-            instruction.transition_command =
-                GROW_ARRAY(TransitionCommand, instruction.transition_command, instruction.capacity * ARRAY_GROWTH);
-            instruction.capacity *= ARRAY_GROWTH;
-        }
-        instruction.transition_command[instruction.count - 1] = transition_comm;
-        instruction_set->count += 1;
-        if (instruction_set->count >= instruction.capacity - 1)
-        {
-            instruction_set->instructions =
-                GROW_ARRAY(Instruction, instruction_set->instructions, instruction_set->capacity * ARRAY_GROWTH);
-            instruction_set->capacity *= ARRAY_GROWTH;
-        }
-        instruction_set->instructions[instruction_set->count - 1] = instruction;
+        add_transition_command(&instruction, &transition_comm);
+        add_instruction_to_set(instruction_set, &instruction);
         return TM_SUCCESS;
     }
 
+    return TM_SUCCESS;
+}
+
+int add_transition_command(Instruction *instruction, TransitionCommand *transition_command)
+{
+    instruction->count += 1;
+    if (instruction->count >= instruction->capacity - 1)
+    {
+        instruction->capacity *= ARRAY_GROWTH;
+        instruction->transition_command =
+            GROW_ARRAY(TransitionCommand, instruction->transition_command, instruction->capacity);
+    }
+    instruction->transition_command[instruction->count - 1] = *transition_command;
+    return TM_SUCCESS;
+}
+
+int add_instruction_to_set(InstructionSet *instrucion_set, Instruction *instruction)
+{
+    instrucion_set->count += 1;
+    if (instrucion_set->count >= instrucion_set->capacity - 1)
+    {
+        instrucion_set->capacity *= ARRAY_GROWTH;
+        instrucion_set->instructions = GROW_ARRAY(Instruction, instrucion_set->instructions, instrucion_set->capacity);
+    }
+    instrucion_set->instructions[instrucion_set->count - 1] = *instruction;
     return TM_SUCCESS;
 }

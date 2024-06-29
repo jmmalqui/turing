@@ -38,7 +38,6 @@ char *tm_solve(TuringMachine *machine, char *input)
 {
     machine->tape.data = strcpy(machine->tape.data, input);
     machine->tape.count = strlen(input);
-    int tape_idx = 0;
     bool reject = false;
     bool halt = false;
     while (reject == false && halt == false)
@@ -51,12 +50,10 @@ char *tm_solve(TuringMachine *machine, char *input)
                 bool found_instruction = false;
                 for (int j = 0; j < machine->instruction_set.instructions[i].count; j++)
                 {
-
-                    bool outside_word = machine->tape.pointer >= machine->tape.count;
                     bool underbar_in_accept_str =
                         strchr(machine->instruction_set.instructions[i].transition_command[j].accept_string, '_') !=
                         NULL;
-                    bool is_observed_NULL = machine->tape.data[machine->tape.pointer] == NULL;
+                    bool is_observed_NULL = machine->tape.data[machine->tape.pointer] == 0;
                     bool observed_char_in_accept_string =
                         (strchr(machine->instruction_set.instructions[i].transition_command[j].accept_string,
                                 machine->tape.data[machine->tape.pointer]) != NULL) &&
@@ -121,6 +118,7 @@ char *tm_solve(TuringMachine *machine, char *input)
     {
         return reject_str;
     }
+    return NULL;
 }
 
 void tm_dealloc(TuringMachine *machine)

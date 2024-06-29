@@ -41,4 +41,7 @@ int instruction_set_init(InstructionSet *instructions);
 
 int add_instruction(InstructionSet *instructions, char *tm_file_line);
 
+int add_transition_command(Instruction *instruction, TransitionCommand *transition_command);
+
+int add_instruction_to_set(InstructionSet *instrucion_set, Instruction *instruction);
 #endif
