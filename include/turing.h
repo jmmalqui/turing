@@ -1,5 +1,5 @@
 #ifndef turing_h
-#define turing_h_
+#define turing_h
 #include <stdbool.h>
 
 #include "instruction.h"
