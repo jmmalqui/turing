@@ -6,18 +6,14 @@
 #include "stdlib.h"
 #include "string.h"
 
-int get_state_number(char *string)
+int get_state_number(char* string)
 {
-    char *p = string;
-    int state_number;
-    while (*p)
-    {
-        if (isdigit(*p) || (*p == '-' || *p == '+') && isdigit(*(p + 1)))
-        {
+    char* p = string;
+    int   state_number;
+    while (*p) {
+        if (isdigit(*p) || (*p == '-' || *p == '+') && isdigit(*(p + 1))) {
             state_number = (int)strtol(p, &p, 10);
-        }
-        else
-        {
+        } else {
             p++;
         }
     }
