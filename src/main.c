@@ -68,8 +68,7 @@ void InitializeTape(TuringMachine* tm)
 {
     tm->pointer       = 0;
     tm->tape_size     = 0;
-    tm->tape_capacity = 16;
-    tm->tape          = ALLOCARRAY(char, tm->tape_capacity);
+    tm->tape_capacity = 4;
 }
 
 void InitializeInstructions(TuringMachine* tm)
@@ -81,9 +80,8 @@ void InitializeInstructions(TuringMachine* tm)
 
 int InitializeTuringMachine(TuringMachine* tm)
 {
-    tm->current_state = String("q0");
-    tm->halt          = false;
-    tm->reject        = false;
+    tm->halt   = false;
+    tm->reject = false;
     InitializeTape(tm);
     InitializeInstructions(tm);
     return 0;
@@ -108,7 +106,8 @@ int LoadTransition(Instruction* instruction, TransitionCommand* transition)
 
         instruction->transition_command = GROWARRAY(TransitionCommand, instruction->transition_command, instruction->capacity);
     }
-    instruction->transition_command[instruction->count - 1] = *transition;
+    memmove(&instruction->transition_command[instruction->count - 1], transition, sizeof(TransitionCommand));
+    free(transition);
     return EXIT_SUCCESS;
 }
 
@@ -119,18 +118,20 @@ int LoadInstructionToMachine(TuringMachine* tm, Instruction* instruction)
         tm->instructions_capacity *= ARRAYGROWTH;
         tm->instructions = GROWARRAY(Instruction, tm->instructions, tm->instructions_capacity);
     }
-    tm->instructions[tm->instructions_count - 1] = *instruction;
+
+    memmove(&tm->instructions[tm->instructions_count - 1], instruction, sizeof(Instruction));
+    free(instruction);
     return EXIT_SUCCESS;
 }
 
 int LoadInstruction(TuringMachine* tm, char* script_line)
 {
-    Instruction instruction;
-    instruction.count              = 0;
-    instruction.capacity           = 4;
-    instruction.transition_command = ALLOCARRAY(TransitionCommand, 4);
+    Instruction* instruction        = (Instruction*)malloc(sizeof(Instruction));
+    instruction->count              = 0;
+    instruction->capacity           = 120;
+    instruction->transition_command = ALLOCARRAY(TransitionCommand, instruction->capacity);
 
-    TransitionCommand transition;
+    TransitionCommand* transition = (TransitionCommand*)malloc(sizeof(TransitionCommand));
 
     char* space_saveptr     = NULL;
     char* comma_saveptr     = NULL;
@@ -138,8 +139,7 @@ int LoadInstruction(TuringMachine* tm, char* script_line)
 
     char* token = __strtok_r(script_line, WHITESPACE, &space_saveptr);
 
-    int   token_idx = 0;
-    char* state_input;
+    int token_idx = 0;
 
     bool no_instructions   = false;
     bool instruction_saved = false;
@@ -148,14 +148,15 @@ int LoadInstruction(TuringMachine* tm, char* script_line)
 
     while (token) {
         if (token_idx == 0) {
-            state_input = String(token);
             if (tm->instructions_count == 0) {
-                instruction.state_input = String(token);
-                no_instructions         = true;
+                instruction->state_input = String(token);
+                no_instructions          = true;
             } else {
-                saved_idx = GetSavedInstructionIndex(tm, state_input, &instruction_saved);
+                char* state_input = String(token);
+                saved_idx         = GetSavedInstructionIndex(tm, state_input, &instruction_saved);
+                free(state_input);
                 if (!instruction_saved) {
-                    instruction.state_input = String(token);
+                    instruction->state_input = String(token);
                 }
             }
         }
@@ -164,17 +165,17 @@ int LoadInstruction(TuringMachine* tm, char* script_line)
             int   subtoken_idx = 0;
             while (subtoken) {
                 if (subtoken_idx == 0) {
-                    transition.accept_string = String(subtoken);
+                    transition->accept_string = String(subtoken);
                 }
                 if (subtoken_idx == 1) {
                     char* comma_token     = __strtok_r(subtoken, COMMA, &comma_saveptr);
                     int   comma_token_idx = 0;
                     while (comma_token) {
                         if (comma_token_idx == 0) {
-                            transition.write = *comma_token;
+                            transition->write = *comma_token;
                         }
                         if (comma_token_idx == 1) {
-                            transition.move = *comma_token;
+                            transition->move = *comma_token;
                         }
                         comma_token = __strtok_r(NULL, COMMA, &comma_saveptr);
                         comma_token_idx += 1;
@@ -187,25 +188,28 @@ int LoadInstruction(TuringMachine* tm, char* script_line)
         if (token_idx == 2) {
             if (*(token + strlen(token) - 1) == EOL)
                 *(token + strlen(token) - 1) = 0;
-            transition.state_output = String(token);
+            transition->state_output = String(token);
         }
         token = __strtok_r(NULL, WHITESPACE, &space_saveptr);
         token_idx += 1;
     }
     if (no_instructions) {
-        LoadTransition(&instruction, &transition);
-        LoadInstructionToMachine(tm, &instruction);
+        LoadTransition(instruction, transition);
+        LoadInstructionToMachine(tm, instruction);
         no_instructions = false;
         return EXIT_SUCCESS;
     }
 
     if (instruction_saved) {
-        LoadTransition(&tm->instructions[saved_idx], &transition);
+        LoadTransition(&tm->instructions[saved_idx], transition);
         instruction_saved = false;
+        free(instruction->transition_command);
+        free(instruction);
         return EXIT_SUCCESS;
     } else {
-        LoadTransition(&instruction, &transition);
-        LoadInstructionToMachine(tm, &instruction);
+        LoadTransition(instruction, transition);
+        LoadInstructionToMachine(tm, instruction);
+
         return EXIT_SUCCESS;
     }
     return EXIT_SUCCESS;
@@ -224,6 +228,7 @@ int LoadTuringScript(TuringMachine* tm, char* script_path)
         LoadInstruction(tm, transition_function);
     }
     fclose(fptr);
+    free(transition_function);
     return EXIT_SUCCESS;
 }
 
@@ -275,11 +280,11 @@ void ParseMoveInstruction(TuringMachine* tm, int instruction_idx, int transition
     }
 }
 
-char* SolveMachine(TuringMachine* tm, char* input)
+void SolveMachine(TuringMachine* tm, char* input)
 {
-
-    tm->tape      = String(input);
-    tm->tape_size = strlen(input);
+    tm->current_state = String("q0");
+    tm->tape          = String(input);
+    tm->tape_size     = strlen(input);
 
     while (TuringMachineShouldContinue(tm)) {
         for (int i = 0; i < tm->instructions_count; i++) {
@@ -289,9 +294,15 @@ char* SolveMachine(TuringMachine* tm, char* input)
                     TransitionCommand tc = tm->instructions[i].transition_command[j];
                     if (IsUnderbarOnAcceptStr(tm, i, j) || IsCurrentCharOnAcceptStr(tm, i, j)) {
                         instruction_found = true;
+                        free(tm->current_state);
                         tm->current_state = String(tc.state_output);
-                        if (tc.write != '/')
+                        if (tc.write != '/') {
+                            if (tm->pointer > tm->tape_size) {
+                                tm->tape_size *= ARRAYGROWTH;
+                                tm->tape = GROWARRAY(char, tm->tape, tm->tape_size);
+                            }
                             tm->tape[tm->pointer] = tc.write;
+                        }
                         ParseMoveInstruction(tm, i, j);
                         break;
                     }
@@ -301,15 +312,10 @@ char* SolveMachine(TuringMachine* tm, char* input)
             }
         }
     }
-    if (tm->halt) {
-        tm->tape[tm->pointer + 1] = '\0';
-        return tm->tape;
-    }
     if (tm->reject) {
-        char* reject_str = String("Reject");
-        return reject_str;
+        free(tm->tape);
+        tm->tape = String("Reject");
     }
-    return NULL;
 }
 
 void* ReallocateMemory(void* pointer, size_t new_size)
@@ -331,6 +337,27 @@ void help(void)
 {
     printf("No arguments were given.\n");
     printf("Arguments:  ./turing <input_str>  <script_file>.\n");
+}
+
+void FreeInstruction(Instruction* instruction)
+{
+    free(instruction->state_input);
+    for (int i = 0; i < instruction->count; i++) {
+        /* printf("inst: %s\n", instruction->state_input); */
+        free(instruction->transition_command[i].accept_string);
+        free(instruction->transition_command[i].state_output);
+    }
+    free(instruction->transition_command);
+}
+
+void FreeTuringMachine(TuringMachine* tm)
+{
+    for (int i = 0; i < tm->instructions_count; i++) {
+        FreeInstruction(&tm->instructions[i]);
+    }
+    free(tm->instructions);
+    free(tm->current_state);
+    free(tm->tape);
 }
 
 int main(int argc, char* argv[])
@@ -357,8 +384,10 @@ int main(int argc, char* argv[])
         printf("[ERROR] Script loading went wrong.\n");
         return EXIT_FAILURE;
     }
-    char* solution = SolveMachine(&machine, input);
-    printf("Solution: %s\n", solution);
-
+    SolveMachine(&machine, input);
+    printf("Solution: %s\n", machine.tape);
+    free(input);
+    free(filename);
+    FreeTuringMachine(&machine);
     return EXIT_SUCCESS;
 }
