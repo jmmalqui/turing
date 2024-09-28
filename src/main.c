@@ -20,7 +20,12 @@ void* ReallocateMemory(void* pointer, size_t size);
 #define WHITESPACE " "
 #define SEPARATOR "|"
 #define COMMA ","
+#define UNDERBAR '_'
 #define EOL '\n'
+
+#define MOVERIGHT 'R'
+#define MOVELEFT 'L'
+#define HALT 'S'
 typedef struct turing_machine_t     TuringMachine;
 typedef struct instruction_t        Instruction;
 typedef struct transition_command_t TransitionCommand;
@@ -45,9 +50,11 @@ struct turing_machine_t {
     int          pointer;
     int          tape_size;
     int          tape_capacity;
-    Instruction* instructions;
     int          instructions_count;
     int          instructions_capacity;
+    bool         halt;
+    bool         reject;
+    Instruction* instructions;
 };
 
 char* String(const char* string)
@@ -75,6 +82,8 @@ void InitializeInstructions(TuringMachine* tm)
 int InitializeTuringMachine(TuringMachine* tm)
 {
     tm->current_state = String("q0");
+    tm->halt          = false;
+    tm->reject        = false;
     InitializeTape(tm);
     InitializeInstructions(tm);
     return 0;
@@ -205,7 +214,6 @@ int LoadTuringScript(TuringMachine* tm, char* script_path)
 {
     File fptr;
     fptr = fopen(script_path, "r");
-
     if (!fptr) {
         printf("[ERROR] Couldnt find %s\n", script_path);
         return EXIT_FAILURE;
@@ -219,61 +227,86 @@ int LoadTuringScript(TuringMachine* tm, char* script_path)
     return EXIT_SUCCESS;
 }
 
+bool CurrentStateSameAsInputState(TuringMachine* tm, int instruction_idx)
+{
+    return strcmp(tm->instructions[instruction_idx].state_input, tm->current_state) == 0;
+}
+
+bool TuringMachineShouldContinue(TuringMachine* tm)
+{
+    return tm->halt == false && tm->reject == false;
+}
+
+char TapeLookup(TuringMachine* tm)
+{
+    return tm->tape[tm->pointer];
+}
+
+bool IsUnderbarOnAcceptStr(TuringMachine* tm, int instruction_idx, int transition_idx)
+{
+    return strchr(tm->instructions[instruction_idx].transition_command[transition_idx].accept_string, UNDERBAR) != NULL;
+}
+
+bool IsCurrentCharOnAcceptStr(TuringMachine* tm, int instruction_idx, int transition_idx)
+{
+    return strchr(tm->instructions[instruction_idx].transition_command[transition_idx].accept_string, TapeLookup(tm)) != NULL && (TapeLookup(tm) != 0);
+}
+
+void ParseMoveInstruction(TuringMachine* tm, int instruction_idx, int transition_idx)
+{
+    switch (tm->instructions[instruction_idx].transition_command[transition_idx].move) {
+    case MOVERIGHT:
+        tm->pointer++;
+        if (tm->pointer >= tm->tape_capacity) {
+            tm->tape = GROWARRAY(char, tm->tape, tm->tape_capacity* ARRAYGROWTH);
+        }
+        break;
+    case MOVELEFT:
+        tm->pointer--;
+        if (tm->pointer < 0) {
+            tm->reject = true;
+        }
+        break;
+    case HALT:
+        tm->halt = true;
+        break;
+    default:
+        break;
+    }
+}
+
 char* SolveMachine(TuringMachine* tm, char* input)
 {
 
     tm->tape      = String(input);
     tm->tape_size = strlen(input);
-    bool reject   = false;
-    bool halt     = false;
-    while (reject == false && halt == false) {
+
+    while (TuringMachineShouldContinue(tm)) {
         for (int i = 0; i < tm->instructions_count; i++) {
-            if (strcmp(tm->instructions[i].state_input, tm->current_state) == 0) {
-                bool found_instruction = false;
+            if (CurrentStateSameAsInputState(tm, i)) {
+                bool instruction_found = false;
                 for (int j = 0; j < tm->instructions[i].count; j++) {
-                    bool underbar_in_accept_str         = strchr(tm->instructions[i].transition_command[j].accept_string, '_') != NULL;
-                    bool is_observed_NULL               = tm->tape[tm->pointer] == 0;
-                    bool observed_char_in_accept_string = (strchr(tm->instructions[i].transition_command[j].accept_string, tm->tape[tm->pointer]) != NULL) && (is_observed_NULL == false);
-                    if (observed_char_in_accept_string || (underbar_in_accept_str)) {
-                        found_instruction = true;
-                        tm->current_state = String(tm->instructions[i].transition_command[j].state_output);
-                        if (tm->instructions[i].transition_command[j].write != '/') {
-                            tm->tape[tm->pointer] = tm->instructions[i].transition_command[j].write;
-                        }
-                        switch (tm->instructions[i].transition_command[j].move) {
-                        case 'R':
-                            tm->pointer += 1;
-                            if (tm->pointer >= tm->tape_capacity) {
-                                tm->tape = GROWARRAY(char, tm->tape, tm->tape_capacity* ARRAYGROWTH);
-                            }
-                            break;
-                        case 'L':
-                            tm->pointer -= 1;
-                            if (tm->pointer < 0) {
-                                reject = true;
-                            }
-                            break;
-                        case 'S':
-                            halt = true;
-                            break;
-                        default:
-                            break;
-                        }
+                    TransitionCommand tc = tm->instructions[i].transition_command[j];
+                    if (IsUnderbarOnAcceptStr(tm, i, j) || IsCurrentCharOnAcceptStr(tm, i, j)) {
+                        instruction_found = true;
+                        tm->current_state = String(tc.state_output);
+                        if (tc.write != '/')
+                            tm->tape[tm->pointer] = tc.write;
+                        ParseMoveInstruction(tm, i, j);
                         break;
                     }
                 }
-                if (!found_instruction) {
-                    reject = true;
-                }
+                if (!instruction_found)
+                    tm->reject = true;
             }
         }
     }
-    if (halt) {
+    if (tm->halt) {
         tm->tape[tm->pointer + 1] = '\0';
         return tm->tape;
     }
-    char* reject_str = String("Reject");
-    if (reject) {
+    if (tm->reject) {
+        char* reject_str = String("Reject");
         return reject_str;
     }
     return NULL;
@@ -296,7 +329,8 @@ void* ReallocateMemory(void* pointer, size_t new_size)
 
 void help(void)
 {
-    printf("Turing Machine C\n");
+    printf("No arguments were given.\n");
+    printf("Arguments:  ./turing <input_str>  <script_file>.\n");
 }
 
 int main(int argc, char* argv[])
@@ -308,7 +342,7 @@ int main(int argc, char* argv[])
     char* input    = String(argv[1]);
     char* filename = String(argv[2]);
 
-    printf("%s %s\n", input, filename);
+    printf("Input: %s\nFile: %s\n", input, filename);
 
     TuringMachine machine;
 
@@ -323,9 +357,8 @@ int main(int argc, char* argv[])
         printf("[ERROR] Script loading went wrong.\n");
         return EXIT_FAILURE;
     }
-    printf("solving\n");
     char* solution = SolveMachine(&machine, input);
-    printf("%s\n", solution);
+    printf("Solution: %s\n", solution);
 
     return EXIT_SUCCESS;
 }
