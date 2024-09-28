@@ -62,5 +62,5 @@ build/
 !.vscode/*.code-snippets
 
 .history/
-.cache/
+.cache/clangd/index/
 *.vsix
