@@ -1,3 +1,4 @@
+
 # Prerequisites
 *.d
 
@@ -61,5 +62,5 @@ build/
 !.vscode/*.code-snippets
 
 .history/
-
+.cache/
 *.vsix
